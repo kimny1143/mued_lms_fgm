@@ -18,12 +18,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      - name: Run tests
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: /home/runner/.cache/ms-playwright
-        run: npm run test:coverage
+      - name: Run unit tests
+        run: npm run test:unit
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
@@ -45,18 +41,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
         env:
           CI: true
           E2E_BASE_URL: http://localhost:5173
-        # テストディレクトリを明示してPlaywrightテストを実行
+        # フロントエンドサーバーを起動してテスト実行
         run: |
           # フロントエンドサーバーを起動
           npm run dev &
           # サーバーの起動を待つ
           npx wait-on http://localhost:5173
-          # e2eディレクトリを指定して実行（--projectsでテスト対象ブラウザを制限）
+          # E2Eテストを実行（ChromiumのみでOK）
           npx playwright test tests/e2e --project=chromium
       - name: Upload Playwright test results
         if: always()

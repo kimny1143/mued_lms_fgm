@@ -9,8 +9,10 @@
     "build": "vite build",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:ci": "vitest run && playwright test tests/e2e --project=chromium",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

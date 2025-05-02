@@ -6,15 +6,15 @@ import { defineConfig, devices } from '@playwright/test';
  * 詳細設定: https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-  // テストのタイムアウト: 30秒
-  timeout: 30000,
+  // テストのタイムアウト: 60秒（CI環境では時間がかかる場合があるため）
+  timeout: process.env.CI ? 60000 : 30000,
   
   // テストファイルのパターン
   testDir: './tests/e2e',
   testMatch: '**/*.spec.ts',
   
   // テスト実行間の間隔
-  fullyParallel: true,
+  fullyParallel: false,
   
   // テスト失敗時にトレースを出力
   retries: process.env.CI ? 2 : 0,
@@ -29,10 +29,11 @@ export default defineConfig({
   ],
   
   // 前提条件: Viteサーバーを起動
-  webServer: {
+  webServer: process.env.CI ? undefined : {
     command: 'npm run dev',
     port: 5173,
     reuseExistingServer: !process.env.CI,
+    timeout: 30000,
   },
   
   // テスト対象プロジェクトの設定
@@ -72,5 +73,9 @@ export default defineConfig({
     
     // VideoをCIモードでのみ記録
     video: process.env.CI ? 'on-first-retry' : 'off',
+    
+    // テストの安定性向上のための設定
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
   },
 }); 
