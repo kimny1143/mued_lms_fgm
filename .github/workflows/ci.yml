@@ -31,6 +31,34 @@ jobs:
           path: coverage
           if-no-files-found: ignore
   
+  # E2Eテスト実行ジョブ
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: test  # 単体テスト完了後に実行
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        env:
+          CI: true
+          E2E_BASE_URL: http://localhost:5173
+        run: npx playwright test
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
+  
   # AI サービス用のテスト（後で有効化予定）
   # test-python:
   #   runs-on: ubuntu-latest

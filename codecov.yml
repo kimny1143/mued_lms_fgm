@@ -1,0 +1,48 @@
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        base: auto
+      frontend:
+        flags:
+          - frontend
+        target: 80%
+      ai-service:
+        flags:
+          - ai-service
+        target: 70%
+      scheduling-service:
+        flags:
+          - scheduling-service
+        target: 70%
+
+flags:
+  frontend:
+    paths:
+      - src/
+    carryforward: true
+  ai-service:
+    paths:
+      - ai-service/app/
+    carryforward: true
+  scheduling-service:
+    paths:
+      - ai-service/app/api.py
+    carryforward: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_head: yes
+  require_base: yes 
