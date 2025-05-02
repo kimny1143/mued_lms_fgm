@@ -1,12 +1,14 @@
 """
 MUED LMS AI Service - API Endpoints
 """
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends, Body, Path, Query, status
 import uuid
 from datetime import datetime
 import json
 import logging
 import base64
+import stripe
+from os import environ
 
 from app.models import (
     CourseGenerationRequest, 
@@ -21,13 +23,24 @@ from app.models import (
     ChatMessage,
     ChatMessageList,
     MusicXMLConvertRequest,
-    MusicXMLConvertResponse
+    MusicXMLConvertResponse,
+    BookingCreate, BookingUpdate, Booking, BookingStatusUpdate, BookingStatus
 )
 
 router = APIRouter()
 
 # ロガーの設定
 logger = logging.getLogger("mued.api")
+
+# 予約関連のルーター
+booking_router = APIRouter(
+    prefix="/bookings",
+    tags=["Booking"]
+)
+
+# 疑似DB（実際の実装ではPrismaClient経由でDBアクセス）
+fake_bookings_db = []
+booking_id_counter = 1
 
 @router.post("/courses/generate", response_model=CourseGenerationResponse)
 async def generate_course(request: CourseGenerationRequest) -> CourseGenerationResponse:
@@ -299,4 +312,146 @@ async def convert_musicxml(request: MusicXMLConvertRequest) -> MusicXMLConvertRe
         
     except Exception as e:
         logger.error(f"Error converting MusicXML: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Conversion error: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Conversion error: {str(e)}")
+
+# 新規予約の作成
+@booking_router.post("/", response_model=Booking, status_code=status.HTTP_201_CREATED)
+async def create_booking(booking: BookingCreate):
+    global booking_id_counter
+    booking_id = str(booking_id_counter)
+    booking_id_counter += 1
+    
+    new_booking = Booking(
+        id=booking_id,
+        start_time=booking.start_time,
+        end_time=booking.end_time,
+        notes=booking.notes,
+        price=booking.price,
+        status=BookingStatus.PENDING,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+        student_id=booking.student_id,
+        mentor_id=booking.mentor_id,
+        # ここでは簡易的に実装。実際はDBから取得
+        student={"id": booking.student_id, "name": "Student Name", "email": "student@example.com"},
+        mentor={"id": booking.mentor_id, "name": "Mentor Name", "email": "mentor@example.com"}
+    )
+    
+    fake_bookings_db.append(new_booking)
+    return new_booking
+
+# 全予約の取得
+@booking_router.get("/", response_model=list[Booking])
+async def get_all_bookings():
+    return fake_bookings_db
+
+# IDで予約を取得
+@booking_router.get("/{booking_id}", response_model=Booking)
+async def get_booking(booking_id: str = Path(..., description="予約ID")):
+    for booking in fake_bookings_db:
+        if booking.id == booking_id:
+            return booking
+    raise HTTPException(status_code=404, detail="予約が見つかりません")
+
+# ユーザーの予約を取得
+@booking_router.get("/user/{user_id}", response_model=list[Booking])
+async def get_user_bookings(
+    user_id: str = Path(..., description="ユーザーID"),
+    role: str = Query(..., description="ユーザーの役割（student または mentor）")
+):
+    if role not in ["student", "mentor"]:
+        raise HTTPException(status_code=400, detail="役割は 'student' または 'mentor' である必要があります")
+    
+    result = []
+    for booking in fake_bookings_db:
+        if (role == "student" and booking.student_id == user_id) or \
+           (role == "mentor" and booking.mentor_id == user_id):
+            result.append(booking)
+    
+    return result
+
+# 予約を更新
+@booking_router.put("/{booking_id}", response_model=Booking)
+async def update_booking(
+    booking_update: BookingUpdate,
+    booking_id: str = Path(..., description="予約ID")
+):
+    for i, booking in enumerate(fake_bookings_db):
+        if booking.id == booking_id:
+            updated_booking = booking.dict()
+            
+            # 更新対象のフィールドを更新
+            for key, value in booking_update.dict(exclude_unset=True).items():
+                if value is not None:
+                    updated_booking[key] = value
+            
+            updated_booking["updated_at"] = datetime.now()
+            
+            # 更新内容を反映
+            fake_bookings_db[i] = Booking(**updated_booking)
+            return fake_bookings_db[i]
+    
+    raise HTTPException(status_code=404, detail="予約が見つかりません")
+
+# 予約のステータスを更新
+@booking_router.patch("/{booking_id}/status", response_model=Booking)
+async def update_booking_status(
+    status_update: BookingStatusUpdate,
+    booking_id: str = Path(..., description="予約ID")
+):
+    for i, booking in enumerate(fake_bookings_db):
+        if booking.id == booking_id:
+            # ステータスを更新
+            updated_booking = booking.dict()
+            updated_booking["status"] = status_update.status
+            updated_booking["updated_at"] = datetime.now()
+            
+            # 更新内容を反映
+            fake_bookings_db[i] = Booking(**updated_booking)
+            return fake_bookings_db[i]
+    
+    raise HTTPException(status_code=404, detail="予約が見つかりません")
+
+# 予約を削除
+@booking_router.delete("/{booking_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_booking(booking_id: str = Path(..., description="予約ID")):
+    for i, booking in enumerate(fake_bookings_db):
+        if booking.id == booking_id:
+            # 予約を削除
+            fake_bookings_db.pop(i)
+            return
+    
+    raise HTTPException(status_code=404, detail="予約が見つかりません")
+
+# Stripe Webhook処理
+@booking_router.post("/webhook", status_code=status.HTTP_200_OK)
+async def stripe_webhook(event: StripeWebhookEvent):
+    try:
+        # checkout.session.completed イベントを処理
+        if event.type == "checkout.session.completed":
+            session = event.data.get("object", {})
+            
+            # セッションからメタデータを取得
+            metadata = session.get("metadata", {})
+            booking_id = metadata.get("booking_id")
+            
+            if booking_id:
+                # 予約のステータスを PAID に更新
+                for i, booking in enumerate(fake_bookings_db):
+                    if booking.id == booking_id:
+                        updated_booking = booking.dict()
+                        updated_booking["status"] = BookingStatus.PAID
+                        updated_booking["updated_at"] = datetime.now()
+                        
+                        # 更新内容を反映
+                        fake_bookings_db[i] = Booking(**updated_booking)
+                        break
+        
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Webhook処理エラー: {str(e)}")
+
+# メインルーターにサブルーターを登録
+api_router = APIRouter()
+api_router.include_router(router)
+api_router.include_router(booking_router) 

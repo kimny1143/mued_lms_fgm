@@ -4,6 +4,8 @@ MUED LMS AI Service - Data Models
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
+from enum import Enum
+from pydantic import validator
 
 class CourseGenerationRequest(BaseModel):
     """コース生成リクエストモデル"""
@@ -189,11 +191,67 @@ class WebhookEvent(BaseModel):
     created: datetime = Field(..., description="作成日時")
     data: Dict[str, Any] = Field(..., description="イベントデータ")
 
+# 予約関連のモデル
+class BookingStatus(str, Enum):
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    PAID = "PAID"
+    CANCELED = "CANCELED"
+    COMPLETED = "COMPLETED"
+
+class BookingBase(BaseModel):
+    start_time: datetime
+    end_time: datetime
+    notes: Optional[str] = None
+    price: float = Field(gt=0)
+    
+    @validator('end_time')
+    def end_time_must_be_after_start_time(cls, v, values):
+        if 'start_time' in values and v <= values['start_time']:
+            raise ValueError('終了時間は開始時間より後である必要があります')
+        return v
+
+class BookingCreate(BookingBase):
+    student_id: str
+    mentor_id: str
+
+class BookingUpdate(BaseModel):
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    notes: Optional[str] = None
+    price: Optional[float] = Field(None, gt=0)
+    status: Optional[BookingStatus] = None
+    
+    @validator('end_time')
+    def end_time_must_be_after_start_time(cls, v, values):
+        if v and 'start_time' in values and values['start_time'] and v <= values['start_time']:
+            raise ValueError('終了時間は開始時間より後である必要があります')
+        return v
+
+class BookingStatusUpdate(BaseModel):
+    status: BookingStatus
+
+class UserInfo(BaseModel):
+    id: str
+    name: str
+    email: str
+
+class Booking(BookingBase):
+    id: str
+    status: BookingStatus
+    created_at: datetime
+    updated_at: datetime
+    student_id: str
+    mentor_id: str
+    student: Optional[UserInfo] = None
+    mentor: Optional[UserInfo] = None
+    
+    class Config:
+        orm_mode = True
+
+# Stripe Webhook関連のモデル
 class StripeWebhookEvent(BaseModel):
     """Stripe Webhook用のモデル"""
     id: str = Field(..., description="Stripeイベント識別子")
     type: str = Field(..., description="イベントタイプ (payment_intent.succeeded 等)")
-    created: int = Field(..., description="UNIXタイムスタンプ")
-    data: Dict[str, Any] = Field(..., description="イベントデータ")
-    livemode: bool = Field(..., description="本番環境のイベントかどうか")
-    api_version: Optional[str] = None 
+    data: Dict[str, Any] = Field(..., description="イベントデータ") 
