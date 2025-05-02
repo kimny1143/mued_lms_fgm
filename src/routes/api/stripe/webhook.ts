@@ -5,7 +5,7 @@ import { prisma } from '../../../lib/prisma';
 
 // Stripeインスタンスの初期化
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
 });
 
 export async function POST(req: Request, res: Response) {
@@ -70,7 +70,7 @@ async function getRawBody(req: Request): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = '';
     
-    req.on('data', (chunk) => {
+    req.on('data', (chunk: Buffer) => {
       data += chunk;
     });
     
@@ -78,7 +78,7 @@ async function getRawBody(req: Request): Promise<string> {
       resolve(data);
     });
     
-    req.on('error', (err) => {
+    req.on('error', (err: Error) => {
       reject(err);
     });
   });
