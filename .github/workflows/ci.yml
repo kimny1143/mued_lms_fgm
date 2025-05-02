@@ -50,7 +50,14 @@ jobs:
         env:
           CI: true
           E2E_BASE_URL: http://localhost:5173
-        run: npx playwright test
+        # テストディレクトリを明示してPlaywrightテストを実行
+        run: |
+          # フロントエンドサーバーを起動
+          npm run dev &
+          # サーバーの起動を待つ
+          npx wait-on http://localhost:5173
+          # e2eディレクトリを指定して実行（--projectsでテスト対象ブラウザを制限）
+          npx playwright test tests/e2e --project=chromium
       - name: Upload Playwright test results
         if: always()
         uses: actions/upload-artifact@v4

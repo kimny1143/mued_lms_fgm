@@ -431,10 +431,14 @@ async def delete_booking(booking_id: str = Path(..., description="予約ID")):
     global fake_bookings_db
     
     # 指定されたIDの予約を検索
-    booking_index = next((i for i, b in enumerate(fake_bookings_db) if b["id"] == booking_id), None)
+    booking_index = None
+    for i, booking in enumerate(fake_bookings_db):
+        if booking.id == booking_id:
+            booking_index = i
+            break
     
     if booking_index is None:
-        raise HTTPException(status_code=404, detail=f"Booking with ID {booking_id} not found")
+        raise HTTPException(status_code=404, detail=f"予約ID {booking_id} が見つかりません")
     
     # 予約を削除
     fake_bookings_db.pop(booking_index)
