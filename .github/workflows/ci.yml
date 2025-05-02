@@ -26,6 +26,8 @@ jobs:
           name: coverage-report
           path: coverage
           if-no-files-found: ignore
+      - name: Clear Playwright Cache
+        run: rm -rf ~/.cache/ms-playwright
   
   # E2Eテスト実行ジョブ
   e2e-test:

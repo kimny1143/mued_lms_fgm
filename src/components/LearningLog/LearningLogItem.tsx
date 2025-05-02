@@ -118,7 +118,7 @@ export const LearningLogItem: FC<LearningLogItemProps> = ({
               <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                 {formatTypeLabel(type)}
               </span>
-              <h3 className="text-lg font-medium text-gray-900 mt-1">{title}</h3>
+              <h3 className="text-lg font-medium text-gray-900 mt-1" data-testid="activity-title">{title}</h3>
             </div>
             
             <div className="text-sm text-gray-500">

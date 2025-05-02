@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { LearningLogList } from './LearningLogList';
 import { LearningActivity } from './LearningLogItem';
 
@@ -109,18 +109,23 @@ describe('LearningLogList', () => {
     
     // デフォルトでは新しい順（降順）でソートされる
     const activityContainer = screen.getByTestId('activity-container');
-    const initialChildren = activityContainer.children;
-    expect(initialChildren[0]).toHaveTextContent('クイズ1');
-    expect(initialChildren[initialChildren.length - 1]).toHaveTextContent('レッスン1');
+    const initialItems = screen.getAllByTestId('learning-log-item');
+    
+    // 最初と最後の要素のテキストを確認
+    const firstItem = within(initialItems[0]).getByTestId('activity-title');
+    const lastItem = within(initialItems[initialItems.length - 1]).getByTestId('activity-title');
+    expect(firstItem).toHaveTextContent('クイズ1');
+    expect(lastItem).toHaveTextContent('レッスン1');
     
     // ソートを古い順に変更
     fireEvent.change(screen.getByTestId('sort-select'), { target: { value: 'oldest' } });
     
     // 古い順でソートされたことを確認
-    const updatedContainer = screen.getByTestId('activity-container');
-    const updatedChildren = updatedContainer.children;
-    expect(updatedChildren[0]).toHaveTextContent('レッスン1');
-    expect(updatedChildren[updatedChildren.length - 1]).toHaveTextContent('クイズ1');
+    const updatedItems = screen.getAllByTestId('learning-log-item');
+    const updatedFirstItem = within(updatedItems[0]).getByTestId('activity-title');
+    const updatedLastItem = within(updatedItems[updatedItems.length - 1]).getByTestId('activity-title');
+    expect(updatedFirstItem).toHaveTextContent('レッスン1');
+    expect(updatedLastItem).toHaveTextContent('クイズ1');
   });
 
   it('showFilters=falseの場合、フィルターが表示されないこと', () => {
@@ -155,14 +160,21 @@ describe('LearningLogList', () => {
     const handleActivityClick = vi.fn();
     render(<LearningLogList activities={mockActivities} onActivityClick={handleActivityClick} />);
     
-    // アクティビティアイテムの最初のものをクリック
-    const items = screen.getAllByTestId('learning-log-item');
-    fireEvent.click(items[0]);
+    // アクティビティアイテムをクリック（ID指定で特定の項目を確実に選択）
+    const firstItem = screen.getAllByTestId('learning-log-item')[0];
     
-    // onActivityClickが正しい引数で呼ばれたことを確認
+    // クリックする前に特定要素であることを確認
+    const titleElement = within(firstItem).getByTestId('activity-title');
+    expect(titleElement).toHaveTextContent('クイズ1');
+    
+    // 明示的にクリック
+    fireEvent.click(firstItem);
+    
+    // onActivityClickが正しく呼ばれたことを確認
     expect(handleActivityClick).toHaveBeenCalledTimes(1);
     expect(handleActivityClick).toHaveBeenCalledWith(expect.objectContaining({
-      id: mockActivities[3].id, // 表示順が逆転しているので最後のアイテムが最初に表示される
+      id: '4', // クイズ1のID
+      title: 'クイズ1'
     }));
   });
 }); 

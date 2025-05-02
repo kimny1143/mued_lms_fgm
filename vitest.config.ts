@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    setupFiles: ['./jest.setup.js'],
     exclude: [
       'node_modules/**',
       'dist/**',
