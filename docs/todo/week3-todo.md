@@ -105,15 +105,15 @@
 
 ## 🧑‍💻 鈴木（DevOps / Test）
 
-- [ ] **FastAPI スケジューリングサービス用 pytest テスト追加**  
+- [✅] **FastAPI スケジューリングサービス用 pytest テスト追加**  
   - 予約 CRUD エンドポイントの 200/400/500 ケース検証  
   - `tests/test_booking_api.py` 追加  
   - 期限: **週3**
-- [ ] **Playwright E2E テスト基盤立ち上げ**  
+- [✅] **Playwright E2E テスト基盤立ち上げ**  
   - 認証→予約フローのシナリオ作成  
   - GitHub Actions にステップ追加  
   - 期限: **週3**
-- [ ] **Codecov 設定更新**  
+- [✅] **Codecov 設定更新**  
   - 新しいサービス向け coverage レポート設定  
   - Frontend / AI / Scheduling サービスを含む  
   - 期限: **週3**
