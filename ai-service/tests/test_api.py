@@ -209,7 +209,7 @@ def test_pdf_extract_success():
         "extract_tables": True
     }
     
-    response = client.post("/api/extract/pdf", json=request_data)
+    response = client.post("/api/v1/extract/pdf", json=request_data)
     assert response.status_code == 200
     
     data = response.json()
@@ -232,7 +232,7 @@ def test_pdf_extract_without_tables():
         "extract_tables": False
     }
     
-    response = client.post("/api/extract/pdf", json=request_data)
+    response = client.post("/api/v1/extract/pdf", json=request_data)
     assert response.status_code == 200
     
     data = response.json()
@@ -253,7 +253,7 @@ def test_pdf_extract_server_error():
     # 例外を発生させるためにuuid.uuid4をモックする
     error_message = "シミュレートされたPDF処理エラー"
     with patch("app.api.uuid.uuid4", side_effect=Exception(error_message)):
-        response = client.post("/api/extract/pdf", json=request_data)
+        response = client.post("/api/v1/extract/pdf", json=request_data)
         assert response.status_code == 500  # サーバーエラー
         
         data = response.json()

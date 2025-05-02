@@ -54,7 +54,7 @@ booking_router = APIRouter(
 fake_bookings_db = []
 booking_id_counter = 1
 
-@router.post("/courses/generate", response_model=CourseGenerationResponse)
+@router.post("/v1/courses/generate", response_model=CourseGenerationResponse)
 async def generate_course(request: CourseGenerationRequest) -> CourseGenerationResponse:
     """
     コース生成エンドポイント
@@ -130,7 +130,7 @@ async def generate_course(request: CourseGenerationRequest) -> CourseGenerationR
     
     return response
 
-@router.post("/exercise/logs", response_model=ExerciseLog)
+@router.post("/v1/exercise/logs", response_model=ExerciseLog)
 async def create_exercise_log(request: ExerciseLogCreate) -> ExerciseLog:
     """
     練習記録保存エンドポイント
@@ -159,7 +159,7 @@ async def create_exercise_log(request: ExerciseLogCreate) -> ExerciseLog:
     
     return response
 
-@router.post("/webhooks/general")
+@router.post("/v1/webhooks/general")
 async def general_webhook_handler(event: WebhookEvent):
     """
     汎用Webhookエンドポイント
@@ -173,7 +173,7 @@ async def general_webhook_handler(event: WebhookEvent):
     
     return {"status": "success", "message": f"Event {event.id} of type {event.type} processed"}
 
-@router.post("/webhooks/stripe")
+@router.post("/v1/webhooks/stripe")
 async def stripe_webhook_handler(request: Request):
     """
     Stripe Webhookエンドポイント
@@ -206,7 +206,7 @@ async def stripe_webhook_handler(request: Request):
     
     return {"status": "success", "message": f"Stripe event {event_id} processed"}
 
-@router.get("/chat/messages", response_model=ChatMessageList)
+@router.get("/v1/chat/messages", response_model=ChatMessageList)
 async def get_chat_messages(room_id: str, limit: int = 20) -> ChatMessageList:
     """
     チャットメッセージ取得エンドポイント
@@ -236,7 +236,7 @@ async def get_chat_messages(room_id: str, limit: int = 20) -> ChatMessageList:
     
     return ChatMessageList(messages=messages, total=len(messages))
 
-@router.post("/chat/messages", response_model=ChatMessage)
+@router.post("/v1/chat/messages", response_model=ChatMessage)
 async def create_chat_message(message: ChatMessageCreate) -> ChatMessage:
     """
     チャットメッセージ作成エンドポイント
@@ -259,7 +259,7 @@ async def create_chat_message(message: ChatMessageCreate) -> ChatMessage:
     
     return saved_message
 
-@router.post("/musicxml/convert", response_model=MusicXMLConvertResponse)
+@router.post("/v1/musicxml/convert", response_model=MusicXMLConvertResponse)
 async def convert_musicxml(request: MusicXMLConvertRequest) -> MusicXMLConvertResponse:
     """
     MusicXML変換エンドポイント
@@ -469,7 +469,7 @@ async def stripe_webhook(event: StripeWebhookEvent):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Webhook処理エラー: {str(e)}")
 
-@router.post("/extract/pdf", response_model=PDFExtractResponse)
+@router.post("/v1/extract/pdf", response_model=PDFExtractResponse)
 async def extract_pdf_text(request: PDFExtractRequest) -> PDFExtractResponse:
     """
     PDFからテキストを抽出するエンドポイント
