@@ -1,3 +1,8 @@
-import '@testing-library/jest-dom';
-import { expect } from 'vitest'; // Ensure vitest's expect is available globally
-global.expect = expect; 
+import { expect, vi } from 'vitest';
+
+// グローバルオブジェクトを設定
+global.expect = expect;
+global.vi = vi;
+
+// その後でjest-domをインポート
+import '@testing-library/jest-dom'; 

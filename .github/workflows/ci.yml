@@ -16,8 +16,16 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
+      # クリーンインストール
+      - name: Clean npm cache
+        run: npm cache clean --force
+      - name: Remove node_modules
+        run: rm -rf node_modules
+      - name: Install dependencies with exact versions
+        run: npm ci --legacy-peer-deps
+      - name: Verify testing dependencies
+        run: |
+          npm list vitest @testing-library/react @testing-library/jest-dom --depth=0 || true
       - name: Clear Playwright Cache
         run: rm -rf ~/.cache/ms-playwright
       - name: Install Playwright browsers
@@ -52,7 +60,7 @@ jobs:
           node-version: 20
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Clear Playwright Cache
         run: rm -rf ~/.cache/ms-playwright
       - name: Install Playwright browsers
