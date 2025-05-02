@@ -254,4 +254,49 @@ class StripeWebhookEvent(BaseModel):
     """Stripe Webhook用のモデル"""
     id: str = Field(..., description="Stripeイベント識別子")
     type: str = Field(..., description="イベントタイプ (payment_intent.succeeded 等)")
-    data: Dict[str, Any] = Field(..., description="イベントデータ") 
+    data: Dict[str, Any] = Field(..., description="イベントデータ")
+
+# PDFテキスト抽出関連のモデル
+class PDFExtractRequest(BaseModel):
+    """PDF抽出リクエストモデル"""
+    file_content: str = Field(..., description="PDFファイルのBase64エンコードされたコンテンツ")
+    language: Optional[str] = Field("auto", description="抽出するテキストの言語（auto, ja, en, etc）")
+    extract_tables: Optional[bool] = Field(False, description="表を抽出するかどうか")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "file_content": "JVBERi0xLjUKJcOkw7zDtsOfCjIgMCBvYmoKPDwvTGVuZ3RoIDMgMCB...",
+                "language": "ja",
+                "extract_tables": True
+            }
+        }
+
+class PDFExtractResponse(BaseModel):
+    """PDF抽出レスポンスモデル"""
+    id: str = Field(..., description="抽出処理のID")
+    text_content: str = Field(..., description="抽出されたテキストコンテンツ")
+    page_count: int = Field(..., description="PDFのページ数")
+    language_detected: Optional[str] = Field(None, description="検出された言語")
+    tables: Optional[List[Dict[str, Any]]] = Field(None, description="抽出された表データ")
+    created_at: datetime = Field(..., description="抽出処理の作成日時")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "id": "extract-abc123",
+                "text_content": "これはサンプルのPDFから抽出されたテキストです。\n複数行にわたるテキストデータが含まれます。",
+                "page_count": 5,
+                "language_detected": "ja",
+                "tables": [
+                    {
+                        "header": ["項目", "値"],
+                        "rows": [
+                            ["項目1", "値1"],
+                            ["項目2", "値2"]
+                        ]
+                    }
+                ],
+                "created_at": "2024-05-10T15:30:45.123456"
+            }
+        } 

@@ -8,7 +8,7 @@ import time
 import logging
 
 from app.api import router, booking_router
-from app.error_handlers import register_error_handlers, setup_exception_handlers
+from app.error_handlers import register_error_handlers
 
 app = FastAPI(
     title="MUED LMS AI Service",

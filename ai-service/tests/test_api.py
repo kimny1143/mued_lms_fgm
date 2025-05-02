@@ -7,6 +7,7 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 import uuid
+import base64
 
 # 注意: conftest.pyとtests/__init__.pyでパスを設定するため、ここでは不要
 # sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
@@ -195,4 +196,67 @@ def test_musicxml_server_error():
         
         data = response.json()
         assert "detail" in data
+        assert error_message in data["detail"]
+
+def test_pdf_extract_success():
+    """PDFテキスト抽出エンドポイントの成功ケースのテスト"""
+    # サンプルのBase64エンコードされたPDFコンテンツ（このサンプルは実際のPDFではなく、テスト用のダミー）
+    sample_pdf_content = base64.b64encode(b"Dummy PDF content for testing").decode("utf-8")
+    
+    request_data = {
+        "file_content": sample_pdf_content,
+        "language": "ja",
+        "extract_tables": True
+    }
+    
+    response = client.post("/api/extract/pdf", json=request_data)
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert "id" in data
+    assert "text_content" in data
+    assert "page_count" in data
+    assert "language_detected" in data
+    assert data["language_detected"] == "ja"
+    assert "tables" in data
+    assert len(data["tables"]) > 0
+    assert "created_at" in data
+
+def test_pdf_extract_without_tables():
+    """表抽出なしのPDFテキスト抽出テスト"""
+    sample_pdf_content = base64.b64encode(b"Dummy PDF content for testing").decode("utf-8")
+    
+    request_data = {
+        "file_content": sample_pdf_content,
+        "language": "auto",
+        "extract_tables": False
+    }
+    
+    response = client.post("/api/extract/pdf", json=request_data)
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert "id" in data
+    assert "text_content" in data
+    assert "language_detected" in data
+    assert data["tables"] is None  # テーブル抽出が無効なのでNullであるべき
+
+def test_pdf_extract_server_error():
+    """PDFテキスト抽出エンドポイントのサーバーエラーのテスト"""
+    sample_pdf_content = base64.b64encode(b"Invalid PDF content").decode("utf-8")
+    
+    request_data = {
+        "file_content": sample_pdf_content,
+        "language": "en"
+    }
+    
+    # 例外を発生させるためにuuid.uuid4をモックする
+    error_message = "シミュレートされたPDF処理エラー"
+    with patch("app.api.uuid.uuid4", side_effect=Exception(error_message)):
+        response = client.post("/api/extract/pdf", json=request_data)
+        assert response.status_code == 500  # サーバーエラー
+        
+        data = response.json()
+        assert "detail" in data
+        assert "PDF extraction failed" in data["detail"]
         assert error_message in data["detail"] 
