@@ -18,14 +18,35 @@ MUEDは以下の特徴を持つ音楽教育プラットフォームです：
 - **フロントエンド**: Vite + React18 + TypeScript + Tailwind CSS
 - **バックエンド**: Supabase (Auth, PostgreSQL)
 - **AI サービス**: Python/FastAPI (別コンテナ)
+- **ダッシュボード**: Metabase
 - **テスト**: Vitest + React Testing Library
+- **デプロイ**: Docker
 
 ## 開発環境セットアップ
 
 > **前提条件:**
-> 以下の手順を実行するには [NodeJS](https://nodejs.org/en/) がインストールされている必要があります。
+> 以下の手順を実行するには [NodeJS](https://nodejs.org/en/) と [Docker](https://www.docker.com/get-started) がインストールされている必要があります。
 
-### 依存関係のインストール
+### 方法1: Docker を使用した開発環境のセットアップ
+
+```bash
+# 環境変数ファイルの作成
+cp .env.example .env
+
+# Dockerコンテナのビルドと起動
+docker compose up -d
+
+# フロントエンドアクセス
+# ブラウザで http://localhost:5173 を開く
+
+# AIサービスアクセス
+# ブラウザで http://localhost:8000/docs を開く
+
+# Metabaseダッシュボードアクセス
+# ブラウザで http://localhost:3333 を開く
+```
+
+### 方法2: ローカル環境での依存関係のインストール
 
 ```bash
 # 依存関係のインストール
@@ -48,6 +69,8 @@ npm run build
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+POSTGRES_PASSWORD=your_postgres_password
+METABASE_DB_PASSWORD=your_metabase_db_password
 ```
 
 ### 開発ガイドライン
@@ -66,7 +89,28 @@ src/
 ├── lib/           # ユーティリティ関数
 ├── screens/       # ページコンポーネント
 └── types/         # TypeScript型定義
+
+ai-service/        # Python/FastAPI AIサービス
 ```
+
+## Metabaseダッシュボード（社内用）
+
+プロジェクトには分析用のMetabaseダッシュボードが含まれています。以下の手順で設定できます：
+
+1. Dockerコンテナを起動: `docker compose up -d`
+2. ブラウザで http://localhost:3333 にアクセス
+3. 初回セットアップを完了（管理者アカウント作成）
+4. データソースとしてMUEDデータベースを接続（Supabase）
+5. ダッシュボードの作成・共有
+
+### ダッシュボード埋め込み設定
+
+Metabaseダッシュボードは他のアプリケーションに埋め込むことができます：
+
+1. Metabase管理画面から「設定」→「埋め込み」を選択
+2. 埋め込みを有効化し、許可されたドメインを設定
+3. ダッシュボードを選択し「・・・」メニューから「埋め込み」を選択
+4. 生成されたコードをアプリケーションに統合
 
 ## Netlifyプレビュー環境
 

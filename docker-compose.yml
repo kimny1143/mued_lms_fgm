@@ -47,7 +47,7 @@ services:
   metabase:
     image: metabase/metabase:latest
     ports:
-      - "3000:3000"
+      - "3333:3000"  # 社内用ポートを3333に変更
     dns:
       - 8.8.8.8
       - 1.1.1.1
@@ -58,12 +58,17 @@ services:
       - MB_DB_USER=postgres
       - MB_DB_PASS=${METABASE_DB_PASSWORD}
       - MB_DB_HOST=metabase-db
+      # 社内公開用の設定
+      - MB_SITE_URL=http://localhost:3333
+      - MB_ENABLE_EMBEDDING=true
+      - MB_EMBEDDING_APP_ORIGIN=*
     depends_on:
       - metabase-db
     volumes:
       - metabase-data:/metabase-data
     networks:
       - mued-net
+    restart: unless-stopped
     
   metabase-db:
     image: postgres:13
@@ -75,6 +80,7 @@ services:
       - metabase-db-data:/var/lib/postgresql/data
     networks:
       - mued-net
+    restart: unless-stopped
 
 volumes:
   metabase-data:

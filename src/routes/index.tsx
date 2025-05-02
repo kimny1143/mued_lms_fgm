@@ -11,6 +11,7 @@ import { PlansPage } from "../screens/PlansPage";
 import { SuccessPage } from "../screens/SuccessPage";
 import { CancelPage } from "../screens/CancelPage";
 import { ExercisePage, ExerciseDetailPage } from "../screens/ExercisePage";
+import { ProfileEditPage } from "../screens/ProfileEditPage";
 import { PrivateRoute } from "../components/PrivateRoute";
 import { AuthProvider } from "../contexts/AuthContext";
 
@@ -59,6 +60,10 @@ const protectedRoutes = [
   {
     path: "/settings",
     element: <SettingsPage />
+  },
+  {
+    path: "/profile/edit",
+    element: <ProfileEditPage />
   },
   {
     path: "/plans",

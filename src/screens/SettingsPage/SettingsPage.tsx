@@ -4,6 +4,7 @@ import { Separator } from "../../components/ui/separator";
 import { UserCircleIcon } from "lucide-react";
 import { DashboardLayout } from "../../components/DashboardLayout";
 import { useAuth } from "../../contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 export function SettingsPage() {
   const { user } = useAuth();
@@ -20,7 +21,9 @@ export function SettingsPage() {
             </label>
             <div className="flex items-center gap-4">
               <UserCircleIcon className="h-16 w-16" />
-              <Button variant="outline">Change Photo</Button>
+              <Link to="/profile/edit">
+                <Button variant="outline">Edit Profile</Button>
+              </Link>
             </div>
           </div>
           <div>
@@ -43,6 +46,11 @@ export function SettingsPage() {
               placeholder="Enter your display name"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black"
             />
+            <div className="mt-2 flex justify-end">
+              <Link to="/profile/edit">
+                <Button variant="outline" size="sm">詳細プロフィールを編集</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </Card>
@@ -86,7 +94,7 @@ export function SettingsPage() {
               <h3 className="font-medium text-red-600">Delete Account</h3>
               <p className="text-sm text-gray-500">Permanently delete your account and all data</p>
             </div>
-            <Button variant="destructive">Delete Account</Button>
+            <Button variant="primary" className="bg-red-600 hover:bg-red-700">Delete Account</Button>
           </div>
         </div>
       </Card>
