@@ -14,6 +14,22 @@ const config: StorybookConfig = {
   "framework": {
     "name": "@storybook/react-vite",
     "options": {}
+  },
+  "core": {
+    "builder": "@storybook/builder-vite"
+  },
+  "viteFinal": async (config) => {
+    return {
+      ...config,
+      optimizeDeps: {
+        ...(config.optimizeDeps || {}),
+        include: [
+          ...(config.optimizeDeps?.include || []),
+          '@storybook/react',
+          '@storybook/test'
+        ]
+      }
+    };
   }
 };
 export default config;

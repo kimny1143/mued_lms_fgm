@@ -14,7 +14,9 @@ export default defineConfig({
       '.git/**',
       'tests/e2e/**',
       '.storybook/**',
-      'storybook-static/**'
+      'storybook-static/**',
+      'src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+      'src/stories/**'
     ],
     coverage: {
       provider: 'v8',

@@ -18,6 +18,12 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Clear Playwright Cache
+        run: rm -rf ~/.cache/ms-playwright
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Check for missing dependencies
+        run: npm ls || true
       - name: Run unit tests
         run: npm run test:unit
       - name: Upload coverage reports
@@ -26,8 +32,13 @@ jobs:
           name: coverage-report
           path: coverage
           if-no-files-found: ignore
-      - name: Clear Playwright Cache
-        run: rm -rf ~/.cache/ms-playwright
+      - name: Upload npm debug logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-debug-logs
+          path: npm-debug.log
+          if-no-files-found: ignore
   
   # E2Eテスト実行ジョブ
   e2e-test:
@@ -42,6 +53,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
+      - name: Clear Playwright Cache
+        run: rm -rf ~/.cache/ms-playwright
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
