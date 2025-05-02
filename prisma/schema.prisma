@@ -1,0 +1,49 @@
+// Prisma schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  CANCELED
+  COMPLETED
+}
+
+model Booking {
+  id          String       @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  status      BookingStatus @default(PENDING)
+  notes       String?
+  price       Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // リレーション
+  student     User         @relation("StudentBookings", fields: [studentId], references: [id])
+  studentId   String
+  mentor      User         @relation("MentorBookings", fields: [mentorId], references: [id])
+  mentorId    String
+
+  @@index([studentId])
+  @@index([mentorId])
+  @@index([status])
+}
+
+model User {
+  // ... existing code ...
+  
+  // リレーション追加
+  studentBookings Booking[] @relation("StudentBookings")
+  mentorBookings  Booking[] @relation("MentorBookings")
+  
+  // ... existing code ...
+} 

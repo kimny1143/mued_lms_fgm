@@ -12,8 +12,11 @@ import { SuccessPage } from "../screens/SuccessPage";
 import { CancelPage } from "../screens/CancelPage";
 import { ExercisePage, ExerciseDetailPage } from "../screens/ExercisePage";
 import { ProfileEditPage } from "../screens/ProfileEditPage";
-import { PrivateRoute } from "../components/PrivateRoute";
-import { AuthProvider } from "../contexts/AuthContext";
+import SignInPage from "../screens/AuthPage/SignInPage";
+import UnauthorizedPage from "../screens/ErrorPages/UnauthorizedPage";
+import RouteGuard from "../components/RouteGuard";
+import { NextAuthProvider } from "../contexts/NextAuthProvider";
+import { UserRole } from "../lib/types";
 
 // 公開ルート
 const publicRoutes = [
@@ -30,6 +33,14 @@ const publicRoutes = [
     element: <SignupPage />
   },
   {
+    path: "/auth/signin",
+    element: <SignInPage />
+  },
+  {
+    path: "/unauthorized",
+    element: <UnauthorizedPage />
+  },
+  {
     path: "/success",
     element: <SuccessPage />
   },
@@ -39,8 +50,8 @@ const publicRoutes = [
   }
 ];
 
-// 保護されたルート
-const protectedRoutes = [
+// 学生用ルート
+const studentRoutes = [
   {
     path: "/dashboard",
     element: <DashboardPage />
@@ -58,16 +69,8 @@ const protectedRoutes = [
     element: <MessagesPage />
   },
   {
-    path: "/settings",
-    element: <SettingsPage />
-  },
-  {
     path: "/profile/edit",
     element: <ProfileEditPage />
-  },
-  {
-    path: "/plans",
-    element: <PlansPage />
   },
   {
     path: "/exercise",
@@ -79,19 +82,47 @@ const protectedRoutes = [
   }
 ];
 
+// メンター用ルート
+const mentorRoutes = [
+  {
+    path: "/settings",
+    element: (
+      <RouteGuard requiredRoles={[UserRole.MENTOR, UserRole.ADMIN]}>
+        <SettingsPage />
+      </RouteGuard>
+    )
+  }
+];
+
+// 管理者用ルート
+const adminRoutes = [
+  {
+    path: "/plans",
+    element: (
+      <RouteGuard requiredRoles={UserRole.ADMIN}>
+        <PlansPage />
+      </RouteGuard>
+    )
+  }
+];
+
 // ルーターの定義
 const router = createBrowserRouter([
   ...publicRoutes,
-  ...protectedRoutes.map(route => ({
+  // 認証が必要な学生用ルート
+  ...studentRoutes.map(route => ({
     path: route.path,
-    element: <PrivateRoute>{route.element}</PrivateRoute>
-  }))
+    element: <RouteGuard>{route.element}</RouteGuard>
+  })),
+  // メンター・管理者ルート（すでにRouteGuardで囲まれているため、そのまま使用）
+  ...mentorRoutes,
+  ...adminRoutes
 ]);
 
 export function AppRoutes() {
   return (
-    <AuthProvider>
+    <NextAuthProvider>
       <RouterProvider router={router} />
-    </AuthProvider>
+    </NextAuthProvider>
   );
 } 

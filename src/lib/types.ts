@@ -45,4 +45,20 @@ export interface SendMessageRequest {
   content: string;
   room_id: string;
   files?: File[];
+}
+
+// ユーザーロール定義
+export enum UserRole {
+  STUDENT = 'student',
+  MENTOR = 'mentor',
+  ADMIN = 'admin'
+}
+
+// ユーザータイプ拡張（NextAuth + Supabase用）
+export interface UserWithRole {
+  id: string;
+  email: string;
+  name?: string;
+  avatar_url?: string;
+  role: UserRole;
 } 
