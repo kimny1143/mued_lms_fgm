@@ -63,7 +63,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "googleapis": "^148.0.0",
+    "googleapis": "^150.0.1",
     "idb": "^8.0.2",
     "lru-cache": "^11.1.0",
     "lucide-react": "^0.453.0",
